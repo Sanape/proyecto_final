@@ -16,12 +16,16 @@ async function getProductById(req, res, next) {
   try {
     const { pid } = req.params;
 
-    const product = await productManager.getProductById(pid);
+    const {
+      value: product,
+      msg,
+      result,
+    } = await productManager.getProductById(pid);
 
     if (product) {
-      res.status(200).json({ product: product });
+      res.status(200).json({ product: product, message: msg });
     } else {
-      res.status(400).json({ product: 'Not found' });
+      res.status(400).json({ product: 'Not found', message: msg });
     }
   } catch (error) {
     next(error);
@@ -106,7 +110,7 @@ async function deleteImageFromProductById(req, res, next) {
   }
 }
 
-export {
+export default {
   addProduct,
   getAllProducts,
   getProductById,

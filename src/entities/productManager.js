@@ -6,7 +6,7 @@ class ProductManager {
     this.path = path;
   }
 
-  async #loadProductsFromFile() {
+  async  #loadProductsFromFile() {
     //  try catch in case file doesn't exist
     try {
       if (fs.existsSync(this.path)) {
@@ -20,7 +20,7 @@ class ProductManager {
     }
   }
 
-  async #saveProductsToFile() {
+  async  #saveProductsToFile() {
     try {
       await fs.promises.writeFile(this.path, JSON.stringify(this.products));
     } catch (err) {
@@ -28,14 +28,14 @@ class ProductManager {
     }
   }
 
-  async getProducts(queryObj) {
+  async function getProducts(queryObj) {
     await this.#loadProductsFromFile();
     const { limit } = queryObj;
     return limit ? this.products.slice(0, limit) : this.products;
   }
 
-  addProduct(product) {
-    let productValidation = this.#validateProduct(product);
+  function addProduct(product) {
+    let productValidation = this.validateProduct(product);
     if (!productValidation.result) {
       return productValidation.msg;
     }
@@ -51,11 +51,11 @@ class ProductManager {
       product.stock,
     );
     this.products.push(newProduct);
-    this.#saveProductsToFile();
+    this.saveProductsToFile();
     return `${productValidation.msg} y agregado exitosamente`;
   }
 
-  getProductsIndex(productId) {
+  function getProductIndex(productId) {
     try {
       const productIndex = this.products.findIndex(
         (product) => +productId === product.id
@@ -78,10 +78,10 @@ class ProductManager {
 
   }
 
-  async getProductById(productId) {
+  async function getProductById(productId) {
     try {
       await this.#loadProductsFromFile();
-      let productIndex = this.getProductsIndex(+productId);
+      let productIndex = this.getProductIndex(+productId);
       if (!productIndex.result) {
         return {
           ...productIndex,
@@ -98,29 +98,34 @@ class ProductManager {
     }
   }
 
-  async updateProduct(productId, updatedProduct) {
-    const productGet = await this.getProductById(productId);
-    if (!productGet.result) {
-      return ` No se pudo actualizar porqué: ${productGet.msg}`;
+  async function updateProduct(productId, updatedProduct) {
+    try {
+      const productGet = await this.getProductById(productId);
+      if (!productGet.result) {
+        return ` No se pudo actualizar porqué: ${productGet.msg}`;
+      }
+  
+      // Update the product
+      const updatedProduct = Object.assign(productGet.value, updatedProduct);
+      await this.saveProductsToFile();
+      return `actualizado correctamente\n prodcuto:\t${updatedProduct} `;
     }
-
-    // Update the product
-    Object.assign(productGet.value, updatedProduct);
-    await this.#saveProductsToFile();
-    return `actualizado correctamente`;
-  }
-
-  async deleteProduct(productId) {
-    let productIndex = this.getProductsIndex(productId);
-    if (!productIndex.result) {
-      return `No se pudo borrar porqué: ${productIndex.msg}`;
+  
+    async function deleteProduct(productId) {
+      let productIndex = this.getProductIndex(productId);
+      if (!productIndex.result) {
+        return `No se pudo borrar porqué: \n\t${productIndex.msg}`;
+      }
+      this.products.splice(productIndex, 1);
+      await this.saveProductsToFile();
+      return `borrado correctamente\n`;
+      
+    } catch (error) {
+      return error;
     }
-    this.products.splice(productIndex, 1);
-    await this.#saveProductsToFile();
-    return `borrado correctamente`;
   }
   
-  addImageToProductById(id, imagePath) {
+  function addImageToProductById(id, imagePath) {
     try {
       let {value: product, msg: msg1, result: resultProduct} = await this.getProductById(id);
       if (!resultProduct) {
@@ -141,7 +146,7 @@ class ProductManager {
         ...product,
       };
   
-      await this.#saveProductsToFile();
+      await this.saveProductsToFile();
   
       return `Imagen actualizada correctamente`;
     } catch (error) {
@@ -149,7 +154,7 @@ class ProductManager {
     }
   }
   
-  async deleteImageOfProductById(idProduct, idImage) {
+  async function deleteImageOfProductById(idProduct, idImage) {
     try {
       let {value: product, msg: msg1, result: resultProduct} = await this.getProductById(id);
       if (!resultProduct) {
@@ -172,7 +177,7 @@ class ProductManager {
         ...product,
       };
   
-      await this.#saveProductsToFile();
+      await this.saveProductsToFile();
   
       return `Imagen borrada correctamente`;
     } catch (error) {
@@ -180,7 +185,7 @@ class ProductManager {
     }
   }
 
-  #validateProduct(product) {
+  function validateProduct(product) {
     if (
       product.title === undefined ||
       product.description === undefined ||

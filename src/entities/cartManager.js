@@ -5,21 +5,22 @@ class CartManager {
   constructor(path) {
     this.path = path;
   }
-
-  async #loadCartFromFile() {
+  
+  async  #loadCartFromFile() {
     try {
       if (fs.existsSync(this.path)) {
-        this.cart = JSON.parse(await fs.promises.readFile(this.path, 'utf-8'));
+        this.carts = JSON.parse(await fs.promises.readFile(this.path, 'utf-8'));
       } else {
         this.cart = [];
       }
     } catch (err) {
-      this.cart = [];
+      this.carts = [];
       throw new Error(err);
     }
   }
+  
 
-  async #saveCartToFile() {
+  async  #saveCartToFile() {
     try {
       await fs.promises.writeFile(this.path, JSON.stringify(this.carts));
     } catch (err) {
@@ -27,52 +28,85 @@ class CartManager {
     }
   }
 
-  async addCart(newCart) {
+  async function addCart(newCart) {
     try {
-      this.#loadCartFromFile();
+      this.loadCartFromFile();
       let newCart = new Cart(newCart.products);
 
       this.carts.push(newCart);
 
-      await this.#saveCartToFile();
+      await this.saveCartToFile();
       return result;
     } catch (error) {
       throw error;
     }
   }
-  async getCarts(limit) {
+  async function getCarts(limit) {
     try {
       await this.#loadCartFromFile();
 
-      return carts.slice(0, limit);
+      return limit? this.carts.slice(0, limit): this.carts;
     } catch (error) {
       return error;
     }
   }
 
-  async getCartById(id) {
+  async function getCartById(cartId) {
     try {
-      const carts = await this.getCarts();
+      await this.#loadCartFromFile();
 
-      const foundCart = carts.find((cart) => cart.id === +id);
+      const CartIndex.value = getCartsIndex(cartId);
 
-      if (foundCart) {
-        return foundCart;
-      } else {
-        return null;
+      if (!CartIndex.result) {
+        return {
+          ...CartIndex,
+          msg: `No se pudo encontrar porqué: ${productIndex.msg}`,
+        };
       }
+      return {
+        result: true,
+        msg: `${CartIndex.msg} y se encontro`,
+        value: this.products[CartIndex.value],
+      };
     } catch (error) {
       throw error;
     }
   }
 
-  async addProductToCartById(idCart, idProduct) {
+
+  
+  function getCartIndex(cartId) {
     try {
-      const carts = await this.getCarts();
+      const CartIndex = this.carts.findIndex(
+        (product) => +productId === product.id
+      );
+      if (CartIndex == -1) {
+        return {
+          result: false,
+          msg: `El carrito con el id ${cartId} no existe en la lista.`,
+          value: undefined,
+        };
+      }
+      return {
+        result: true,
+        msg: `El carrito con el id ${cartId} existe en la lista`,
+        value: CartIndex,
+      };
+    } catch (error) {
+      return error;
+    }
 
-      let cart = { ...(await this.getCartById(idCart)) };
+  }
 
-      const foundProductIndex = cart.products.findIndex(
+
+
+  async function addProductToCartById(idCart, idProduct) {
+    try {
+      await this.#loadCartFromFile();
+
+      const Cart = await getCartById(idCart);
+
+      const foundProductIndex = Cart.products.findIndex(
         (product) => product.product === +idProduct
       );
 
@@ -82,27 +116,22 @@ class CartManager {
           quantity: 1,
         });
       } else {
-        cart.products[foundProductIndex].quantity += 1;
+        cart.products[foundProductIndex].quantity ++;
       }
 
-      const foundCartIndex = carts.findIndex((cart) => cart.id === +idCart);
+      const foundCartIndex = this.getCartIndex(+idCart);
 
-      carts[foundCartIndex] = cart;
+      this.carts[foundCartIndex] = cart;
 
-      const result = await fs.promises
-        .writeFile(this.path, JSON.stringify(carts))
-        .then(() => {
-          return 'Product added';
-        })
-        .catch((err) => {
-          throw new Error('Product could not be added');
-        });
-
-      return result;
+      this.#saveCartToFile();
+      return `agregado correctamente\n prodcuto con id:\t${idProduct} al carrito`;
     } catch (error) {
       throw error;
     }
+
   }
+
 }
 
-export const cartManager = new CartManager('carts.json');
+
+export const cartManager = new CartManager("carts.json");

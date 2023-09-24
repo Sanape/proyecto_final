@@ -1,7 +1,17 @@
 import { Router } from 'express';
 
-const router = Router();
+import {
+  addProductToCartById,
+  createCart,
+  getProductsOfCartById,
+} from '../controllers/cartsController.js';
+import { body_must_contain_attributes } from '../middlewares/validateBodyRequirements.js';
 
-router.get('/', (req, res) => {});
+const router = Router();
+router.get('/:cid', getProductsOfCartById);
+
+router.post('/', body_must_contain_attributes(['products']), createCart);
+
+router.post('/:cid/product/:pid', addProductToCartById);
 
 export default router;
