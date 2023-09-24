@@ -56,37 +56,46 @@ class ProductManager {
   }
 
   getProductsIndex(productId) {
-    const productIndex = this.products.findIndex(
-      (product) => +productId === product.id
-    );
-    if (productIndex == -1) {
+    try {
+      const productIndex = this.products.findIndex(
+        (product) => +productId === product.id
+      );
+      if (productIndex == -1) {
+        return {
+          result: false,
+          msg: `El producto con el id ${productId} no existe en la lista.`,
+          value: undefined,
+        };
+      }
       return {
-        result: false,
-        msg: `El producto con el id ${productId} no existe en la lista.`,
-        value: undefined,
+        result: true,
+        msg: `El producto con el id ${productId} existe en la lista`,
+        value: productIndex,
       };
+    } catch (error) {
+      return error;
     }
-    return {
-      result: true,
-      msg: `El producto con el id ${productId} existe en la lista`,
-      value: productIndex,
-    };
+
   }
 
   async getProductById(productId) {
-    await this.#loadProductsFromFile();
-    let productIndex = this.getProductsIndex(+productId);
-    if (!productIndex.result) {
+    try {
+      await this.#loadProductsFromFile();
+      let productIndex = this.getProductsIndex(+productId);
+      if (!productIndex.result) {
+        return {
+          ...productIndex,
+          msg: `No se pudo encontrar porqué: ${productIndex.msg}`,
+        };
+      }
       return {
-        ...productIndex,
-        msg: `No se pudo encontrar porqué: ${productIndex.msg}`,
+        result: true,
+        msg: `${productIndex.msg} y se encontro`,
+        value: this.products[productIndex.value],
       };
+    } catch (error) {
+      return error;
     }
-    return {
-      result: true,
-      msg: `${productIndex.msg} y se encontro`,
-      value: this.products[productIndex.value],
-    };
   }
 
   async updateProduct(productId, updatedProduct) {

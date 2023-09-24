@@ -29,11 +29,10 @@ class CartManager {
 
   async addCart(newCart) {
     try {
-      const carts = await this.getCarts();
-
+      this.#loadCartFromFile();
       let newCart = new Cart(newCart.products);
 
-      carts.push(newCart);
+      this.carts.push(newCart);
 
       await this.#saveCartToFile();
       return result;
