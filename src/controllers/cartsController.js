@@ -33,4 +33,4 @@ async function getProductsOfCartById(req, res, next) {
     next(error);
   }
 }
-export default { addProductToCartById, createCart, getProductsOfCartById };
+export { addProductToCartById, createCart, getProductsOfCartById };

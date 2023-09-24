@@ -1,11 +1,12 @@
 import fs from 'fs';
-import { Cart } from './cart.js';
+import Cart from './cart.js';
 
 class CartManager {
   constructor(path) {
     this.path = path;
+    this.carts = []; //added to prevent undefined errors on server first calls
   }
-  
+
   async #loadCartFromFile() {
     try {
       if (fs.existsSync(this.path)) {
@@ -18,9 +19,8 @@ class CartManager {
       throw new Error(err);
     }
   }
-  
 
-  async  #saveCartToFile() {
+  async #saveCartToFile() {
     try {
       await fs.promises.writeFile(this.path, JSON.stringify(this.carts));
     } catch (err) {
@@ -28,7 +28,7 @@ class CartManager {
     }
   }
 
-  async function addCart(newCart) {
+  async addCart(newCart) {
     try {
       this.#loadCartFromFile();
       let newCart = new Cart(newCart.products);
@@ -41,26 +41,26 @@ class CartManager {
       throw error;
     }
   }
-  async function getCarts(limit) {
+  async getCarts(limit) {
     try {
       await this.#loadCartFromFile();
 
-      return limit? this.carts.slice(0, limit): this.carts;
+      return limit ? this.carts.slice(0, limit) : this.carts;
     } catch (error) {
       return error;
     }
   }
 
-  async function getCartById(cartId) {
+  async getCartById(cartId) {
     try {
       await this.#loadCartFromFile();
 
-      const CartIndex.value = getCartsIndex(cartId);
+      const CartIndex = getCartsIndex(cartId);
 
       if (!CartIndex.result) {
         return {
           ...CartIndex,
-          msg: `No se pudo encontrar porqué: ${productIndex.msg}`,
+          msg: `No se pudo encontrar porqué: ${CartIndex.msg}`,
         };
       }
       return {
@@ -73,9 +73,7 @@ class CartManager {
     }
   }
 
-
-  
-  function getCartIndex(cartId) {
+  getCartIndex(cartId) {
     try {
       const CartIndex = this.carts.findIndex(
         (product) => +productId === product.id
@@ -95,12 +93,9 @@ class CartManager {
     } catch (error) {
       return error;
     }
-
   }
 
-
-
-  async function addProductToCartById(idCart, idProduct) {
+  async addProductToCartById(idCart, idProduct) {
     try {
       await this.#loadCartFromFile();
 
@@ -116,7 +111,7 @@ class CartManager {
           quantity: 1,
         });
       } else {
-        cart.products[foundProductIndex].quantity ++;
+        cart.products[foundProductIndex].quantity++;
       }
 
       const foundCartIndex = this.getCartIndex(+idCart);
@@ -128,10 +123,7 @@ class CartManager {
     } catch (error) {
       throw error;
     }
-
   }
-
 }
 
-
-export const cartManager = new CartManager("carts.json");
+export const cartManager = new CartManager('carts.json');

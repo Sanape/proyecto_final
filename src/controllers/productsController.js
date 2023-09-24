@@ -110,7 +110,7 @@ async function deleteImageFromProductById(req, res, next) {
   }
 }
 
-export default {
+export {
   addProduct,
   getAllProducts,
   getProductById,

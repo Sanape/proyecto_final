@@ -9,6 +9,7 @@
   "description": "PROYECTO FINAL para el curso de backend de coderhouse",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js"

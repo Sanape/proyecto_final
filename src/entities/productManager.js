@@ -1,16 +1,19 @@
 import fs from 'fs';
-import {Product} from './product.js'
+import Product from './product.js';
 
 class ProductManager {
   constructor(path) {
     this.path = path;
+    this.products = []; //added to prevent undefined errors at server first calls
   }
 
-  async  #loadProductsFromFile() {
+  async #loadProductsFromFile() {
     //  try catch in case file doesn't exist
     try {
       if (fs.existsSync(this.path)) {
-        this.products = JSON.parse(await fs.promises.readFile(this.path, 'utf-8'));
+        this.products = JSON.parse(
+          await fs.promises.readFile(this.path, 'utf-8')
+        );
       } else {
         this.products = [];
       }
@@ -20,7 +23,7 @@ class ProductManager {
     }
   }
 
-  async  #saveProductsToFile() {
+  async #saveProductsToFile() {
     try {
       await fs.promises.writeFile(this.path, JSON.stringify(this.products));
     } catch (err) {
@@ -28,13 +31,13 @@ class ProductManager {
     }
   }
 
-  async function getProducts(queryObj) {
+  async getProducts(queryObj) {
     await this.#loadProductsFromFile();
     const { limit } = queryObj;
     return limit ? this.products.slice(0, limit) : this.products;
   }
 
-  function addProduct(product) {
+  addProduct(product) {
     let productValidation = this.#validateProduct(product);
     if (!productValidation.result) {
       return productValidation.msg;
@@ -48,14 +51,14 @@ class ProductManager {
       product.thumbnails,
       product.code,
       product.status,
-      product.stock,
+      product.stock
     );
     this.products.push(newProduct);
     this.#saveProductsToFile();
     return `${productValidation.msg} y agregado exitosamente`;
   }
 
-  function getProductIndex(productId) {
+  getProductIndex(productId) {
     try {
       const productIndex = this.products.findIndex(
         (product) => +productId === product.id
@@ -75,10 +78,9 @@ class ProductManager {
     } catch (error) {
       return error;
     }
-
   }
 
-  async function getProductById(productId) {
+  async getProductById(productId) {
     try {
       await this.#loadProductsFromFile();
       let productIndex = this.getProductIndex(+productId);
@@ -98,20 +100,23 @@ class ProductManager {
     }
   }
 
-  async function updateProduct(productId, updatedProduct) {
+  async updateProduct(productId, updatedProduct) {
     try {
       const productGet = await this.getProductById(productId);
       if (!productGet.result) {
         return ` No se pudo actualizar porqué: ${productGet.msg}`;
       }
-  
+
       // Update the product
       const updatedProduct = Object.assign(productGet.value, updatedProduct);
       await this.#saveProductsToFile();
       return `actualizado correctamente\n prodcuto:\t${updatedProduct} `;
+    } catch (error) {
+      return error;
     }
-  
-    async function deleteProduct(productId) {
+  }
+  async deleteProduct(productId) {
+    try {
       let productIndex = this.getProductIndex(productId);
       if (!productIndex.result) {
         return `No se pudo borrar porqué: \n\t${productIndex.msg}`;
@@ -119,21 +124,28 @@ class ProductManager {
       this.products.splice(productIndex, 1);
       await this.#saveProductsToFile();
       return `borrado correctamente\n`;
-      
     } catch (error) {
       return error;
     }
   }
-  
-  function addImageToProductById(id, imagePath) {
+
+  async addImageToProductById(id, imagePath) {
     try {
-      let {value: product, msg: msg1, result: resultProduct} = await this.getProductById(id);
+      let {
+        value: product,
+        msg: msg1,
+        result: resultProduct,
+      } = await this.getProductById(id);
       if (!resultProduct) {
         throw new Error(msg1);
       }
       await this.#loadProductsFromFile();
-      
-      let {value: index, msg: msg2, result: resultIndex} = this.getProductsIndex(id);
+
+      let {
+        value: index,
+        msg: msg2,
+        result: resultIndex,
+      } = this.getProductsIndex(id);
       if (!resultIndex) {
         throw new Error(msg2);
       }
@@ -141,58 +153,67 @@ class ProductManager {
         id: product.thumbnails.length ? product.thumbnails.length : 1,
         url: imagePath,
       });
-  
+
       this.products[resultIndex] = {
         ...product,
       };
-  
+
       await this.#saveProductsToFile();
-  
+
       return `Imagen actualizada correctamente`;
     } catch (error) {
       throw error;
     }
   }
-  
-  async function deleteImageOfProductById(idProduct, idImage) {
+
+  async deleteImageOfProductById(idProduct, idImage) {
     try {
-      let {value: product, msg: msg1, result: resultProduct} = await this.getProductById(id);
+      let {
+        value: product,
+        msg: msg1,
+        result: resultProduct,
+      } = await this.getProductById(id);
       if (!resultProduct) {
         throw new Error(msg1);
       }
       await this.#loadProductsFromFile();
-      
-      let {value: index, msg: msg2, result: resultIndex} = this.getProductsIndex(id);
+
+      let {
+        value: index,
+        msg: msg2,
+        result: resultIndex,
+      } = this.getProductsIndex(id);
       if (!resultIndex) {
         throw new Error(msg2);
       }
-  
+
       const imageIndex = product.thumbnails.findIndex(
         (image) => image.idPhoto === +idImage
       );
-  
+
       product.thumbnails.splice(imageIndex, 1);
-  
+
       this.products[index] = {
         ...product,
       };
-  
+
       await this.#saveProductsToFile();
-  
+
       return `Imagen borrada correctamente`;
     } catch (error) {
       throw error;
     }
   }
 
-  function #validateProduct(product) {
+  #validateProduct(product) {
+    console.log(product);
     if (
       product.title === undefined ||
       product.description === undefined ||
       product.price === undefined ||
       //product.thumbnail === undefined || no es obligatorio
       product.code === undefined ||
-      product.stock === undefined 
+      product.stock === undefined
     ) {
       return {
         result: false,
@@ -201,6 +222,7 @@ class ProductManager {
     }
 
     if (
+      this.products !== undefined &&
       this.products.some(
         (existingProduct) => existingProduct.code === product.code
       )
@@ -217,9 +239,6 @@ class ProductManager {
     };
   }
 }
-
-
-
 
 // Test
 async function Test() {

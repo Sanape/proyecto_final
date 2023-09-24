@@ -20,7 +20,7 @@ router.get('/:pid', getProductById);
 
 router.post(
   '/',
-  upload.array('photos'),
+  upload.array('thumbnails'),
   body_must_contain_attributes([
     'title',
     'description',
@@ -34,9 +34,9 @@ router.post(
   addProduct
 );
 
-router.put('/:pid', upload.array('photos'), updateProductById);
+router.put('/:pid', upload.array('thumbnails'), updateProductById);
 
-router.post('/:pid', upload.array('photos'), addImagesToProductById);
+router.post('/:pid', upload.array('thumbnails'), addImagesToProductById);
 
 router.delete('/:pid', deleteProductById);
 
