@@ -6,7 +6,7 @@ class CartManager {
     this.path = path;
   }
   
-  async  #loadCartFromFile() {
+  async #loadCartFromFile() {
     try {
       if (fs.existsSync(this.path)) {
         this.carts = JSON.parse(await fs.promises.readFile(this.path, 'utf-8'));
@@ -30,12 +30,12 @@ class CartManager {
 
   async function addCart(newCart) {
     try {
-      this.loadCartFromFile();
+      this.#loadCartFromFile();
       let newCart = new Cart(newCart.products);
 
       this.carts.push(newCart);
 
-      await this.saveCartToFile();
+      await this.#saveCartToFile();
       return result;
     } catch (error) {
       throw error;

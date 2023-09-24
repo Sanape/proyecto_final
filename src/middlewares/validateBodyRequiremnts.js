@@ -21,13 +21,14 @@ function body_must_contain_attributes(mustAttributes) {
   return function (req, res, next) {
     try {
       const bodyAttributes = Object.keys(req.body);
-
+      //use of lodash creating an array of unique values that are included in all of the provided arrays
       const intersectedAttributes = _.intersection(
         bodyAttributes,
         mustAttributes
       );
 
       if (!_.isEqual(intersectedAttributes.sort(), mustAttributes.sort())) {
+        //use of lodash creating an array of array values not included in the other provided arrays
         const missingAttributes = _.difference(mustAttributes, bodyAttributes);
         return res.status(400).json({
           message: `The body is missing the following attributes: ${missingAttributes}`,

@@ -35,7 +35,7 @@ class ProductManager {
   }
 
   function addProduct(product) {
-    let productValidation = this.validateProduct(product);
+    let productValidation = this.#validateProduct(product);
     if (!productValidation.result) {
       return productValidation.msg;
     }
@@ -51,7 +51,7 @@ class ProductManager {
       product.stock,
     );
     this.products.push(newProduct);
-    this.saveProductsToFile();
+    this.#saveProductsToFile();
     return `${productValidation.msg} y agregado exitosamente`;
   }
 
@@ -107,7 +107,7 @@ class ProductManager {
   
       // Update the product
       const updatedProduct = Object.assign(productGet.value, updatedProduct);
-      await this.saveProductsToFile();
+      await this.#saveProductsToFile();
       return `actualizado correctamente\n prodcuto:\t${updatedProduct} `;
     }
   
@@ -117,7 +117,7 @@ class ProductManager {
         return `No se pudo borrar porqué: \n\t${productIndex.msg}`;
       }
       this.products.splice(productIndex, 1);
-      await this.saveProductsToFile();
+      await this.#saveProductsToFile();
       return `borrado correctamente\n`;
       
     } catch (error) {
@@ -146,7 +146,7 @@ class ProductManager {
         ...product,
       };
   
-      await this.saveProductsToFile();
+      await this.#saveProductsToFile();
   
       return `Imagen actualizada correctamente`;
     } catch (error) {
@@ -177,7 +177,7 @@ class ProductManager {
         ...product,
       };
   
-      await this.saveProductsToFile();
+      await this.#saveProductsToFile();
   
       return `Imagen borrada correctamente`;
     } catch (error) {
@@ -185,7 +185,7 @@ class ProductManager {
     }
   }
 
-  function validateProduct(product) {
+  function #validateProduct(product) {
     if (
       product.title === undefined ||
       product.description === undefined ||
