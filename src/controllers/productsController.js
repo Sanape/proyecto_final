@@ -72,7 +72,7 @@ async function deleteProductById(req, res, next) {
   try {
     const { pid } = req.params;
 
-    const result = await productManager.deleteProductById(pid);
+    const result = await productManager.deleteProduct(pid);
 
     res.status(200).json({ message: result });
   } catch (error) {

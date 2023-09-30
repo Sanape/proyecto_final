@@ -28,15 +28,23 @@ class CartManager {
     }
   }
 
-  async addCart(newCart) {
+  async addCart(cart) {
     try {
-      this.#loadCartFromFile();
-      let newCart = new Cart(newCart.products);
+      await this.#loadCartFromFile();
+      let id = this.carts.length ? this.carts[this.carts.length - 1].id + 1 : 1;
+
+      let newCart = new Cart(id, cart.products);
 
       this.carts.push(newCart);
 
       await this.#saveCartToFile();
-      return result;
+      return `carrito con los productos:\n\n${newCart.products
+        .map(
+          (product) =>
+            `CANTIDAD: ${product.quantity}
+        ID: ${product.id}`
+        )
+        .join('\n---------------\n')}----------\n Agregado exitosamente`;
     } catch (error) {
       throw error;
     }
@@ -55,7 +63,7 @@ class CartManager {
     try {
       await this.#loadCartFromFile();
 
-      const CartIndex = getCartsIndex(cartId);
+      const CartIndex = this.getCartIndex(cartId);
 
       if (!CartIndex.result) {
         return {
@@ -65,8 +73,8 @@ class CartManager {
       }
       return {
         result: true,
-        msg: `${CartIndex.msg} y se encontro`,
-        value: this.products[CartIndex.value],
+        msg: `${CartIndex.msg} y se encontro sus productos`,
+        value: this.carts[CartIndex.value],
       };
     } catch (error) {
       throw error;
@@ -75,9 +83,7 @@ class CartManager {
 
   getCartIndex(cartId) {
     try {
-      const CartIndex = this.carts.findIndex(
-        (product) => +productId === product.id
-      );
+      const CartIndex = this.carts.findIndex((cart) => +cartId === cart.id);
       if (CartIndex == -1) {
         return {
           result: false,
@@ -99,15 +105,17 @@ class CartManager {
     try {
       await this.#loadCartFromFile();
 
-      const Cart = await getCartById(idCart);
-
-      const foundProductIndex = Cart.products.findIndex(
-        (product) => product.product === +idProduct
+      const { result, msg, value: cart } = await this.getCartById(idCart);
+      if (!result) {
+        throw Error(msg);
+      }
+      const foundProductIndex = cart.products.findIndex(
+        (product) => product.id === +idProduct
       );
 
       if (foundProductIndex === -1) {
         cart.products.push({
-          product: +idProduct,
+          id: +idProduct,
           quantity: 1,
         });
       } else {

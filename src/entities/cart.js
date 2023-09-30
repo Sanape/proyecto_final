@@ -1,13 +1,6 @@
 export default class Cart {
-  constructor(products = []) {
+  constructor(id, products = []) {
+    this.id = id;
     this.products = products;
-    this.id = Cart.#getNextId();
-  }
-
-  static #getNextId() {
-    if (!Cart.nextId) {
-      Cart.nextId = 1;
-    }
-    return Cart.nextId++;
   }
 }

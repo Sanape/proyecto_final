@@ -33,17 +33,20 @@ class ProductManager {
 
   async getProducts(queryObj) {
     await this.#loadProductsFromFile();
-    const { limit } = queryObj;
-    return limit ? this.products.slice(0, limit) : this.products;
+    return queryObj ? this.products.slice(0, queryObj.limit) : this.products;
   }
 
-  addProduct(product) {
+  async addProduct(product) {
+    await this.#loadProductsFromFile();
     let productValidation = this.#validateProduct(product);
     if (!productValidation.result) {
       return productValidation.msg;
     }
 
-    // Here is where we use the Product class to assign an id
+    let id = this.products.length
+      ? this.products[this.products.length - 1].id + 1
+      : 1;
+
     let newProduct = new Product(
       product.title,
       product.description,
@@ -51,7 +54,8 @@ class ProductManager {
       product.thumbnails,
       product.code,
       product.status,
-      product.stock
+      product.stock,
+      id
     );
     this.products.push(newProduct);
     this.#saveProductsToFile();

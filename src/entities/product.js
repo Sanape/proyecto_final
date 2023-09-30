@@ -6,7 +6,8 @@ export default class Product {
     thumbnails = [],
     code,
     status = true,
-    stock
+    stock,
+    id
   ) {
     this.title = title;
     this.description = description;
@@ -15,13 +16,14 @@ export default class Product {
     this.code = code;
     this.stock = stock;
     this.status = status;
-    this.id = Product.#getNextId();
+    this.id = id;
   }
 
-  static #getNextId() {
-    if (!Product.nextId) {
-      Product.nextId = 1;
-    }
-    return Product.nextId++;
-  }
+  ///No sirve ya que solo funciona cuando los productos se envian een la misma peticion. No tiene persistencia en el tiempo.
+  // static #getNextId() {
+  //   if (!Product.nextId) {
+  //     Product.nextId = 1;
+  //   }
+  //   return Product.nextId++;
+  // }
 }

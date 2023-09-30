@@ -26,9 +26,9 @@ async function getProductsOfCartById(req, res, next) {
   try {
     const { cid } = req.params;
 
-    const { value: products, msg, result } = await cartManager.getCartById(cid);
+    const { value: cart, msg, result } = await cartManager.getCartById(cid);
 
-    res.status(200).json({ products: products, message: msg });
+    res.status(200).json({ products: cart.products, message: msg });
   } catch (error) {
     next(error);
   }
