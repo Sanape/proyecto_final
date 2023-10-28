@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import {
   addProduct,
-  getAllProducts,
+  getProducts,
   getProductById,
   updateProductById,
   deleteProductById,
@@ -14,7 +14,7 @@ import multer from 'multer';
 const upload = multer({ dest: 'uploads/' });
 const router = Router();
 
-router.get('/', getAllProducts);
+router.get('/', getProducts);
 
 router.get('/:pid', getProductById);
 

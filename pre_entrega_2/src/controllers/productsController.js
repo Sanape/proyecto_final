@@ -1,5 +1,5 @@
 //import { productManager } from '../dao/FileSystem/productManager.js';
-import { productManager } from '../dao/db/productManager.js';
+import productManager from '../dao/db/productManager.js';
 import cartManager from '../dao/db/CartManager.js';
 
 async function getProducts(req, res, next) {

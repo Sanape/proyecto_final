@@ -1,5 +1,5 @@
 //import { cartManager } from '../dao/FileSystem/cartManager.js';
-import { cartManager } from '../dao/db/cartManager.js';
+import cartManager from '../dao/db/cartManager.js';
 
 async function addProductToCartById(req, res, next) {
   try {

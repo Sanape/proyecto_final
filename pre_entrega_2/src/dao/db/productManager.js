@@ -31,6 +31,8 @@ class ProductManager extends Manager {
   }
 }
 
+export default new ProductManager();
+
 //TODO: agregar metodos para operar imagenes utilizando metodos propios de MongoDB y usando getIndex de Manager
 // async addImageToProductById(id, imagePath) {
 //   try {
@@ -102,5 +104,3 @@ class ProductManager extends Manager {
 //     throw error;
 //   }
 // }
-
-export default new ProductManager();

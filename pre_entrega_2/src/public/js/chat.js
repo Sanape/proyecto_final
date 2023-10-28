@@ -17,7 +17,7 @@ messageForm.onsubmit = async (e) => {
 
   let newMessage = {
     user: document.getElementById('email').value,
-    message: document.getElementById('message').value,
+    messageText: document.getElementById('message').value,
   };
 
   if (validMessage(newMessage)) {
@@ -26,12 +26,12 @@ messageForm.onsubmit = async (e) => {
 };
 
 function validMessage(_message) {
-  return _message.user && _message.message;
+  return _message.user && _message.messageText;
 }
 
 function compileChat() {
   const chatTemplate = messages
-    .map((_message) => `<li>${_message.user}: ${_message.message}</li>`)
+    .map((_message) => `<li>${_message.user}: ${_message.messageText}</li>`)
     .join(' ');
   chat.innerHTML = chatTemplate;
 }
