@@ -146,4 +146,3 @@ socketClient.on('updatedProducts', (_products) => {
   products = [..._products];
   compileProducts();
 });
-//TODO:clear inputs on send
