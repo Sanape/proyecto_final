@@ -68,6 +68,14 @@ async function addNewProduct(product) {
 
     if (result) {
       socketClient.emit('getAllProducts');
+
+      // Clear the input fields here, after the new product has been added
+      document.getElementById('newProductTitle').value = '';
+      document.getElementById('newProductDescription').value = '';
+      document.getElementById('newProductPrice').value = '';
+      document.getElementById('newProductCode').value = '';
+      document.getElementById('newProductStock').value = '';
+      document.getElementById('newProductCategory').value = '';
     }
   } catch (err) {
     console.log(err);
@@ -90,6 +98,9 @@ async function updateProduct(idProduct, product) {
 
     if (result) {
       socketClient.emit('getAllProducts');
+      // Clear the input fields here, after the product has been updated
+      document.getElementById('updateProductId').value = '';
+      document.getElementById('updateProductPrice').value = '';
     }
   } catch (err) {
     error = err;
@@ -107,6 +118,8 @@ async function deleteProduct(idProduct) {
 
     if (result) {
       socketClient.emit('getAllProducts');
+      // Clear the input field here, after the product has been deleted
+      document.getElementById('deleteProductId').value = '';
     }
   } catch (err) {
     error = err;
@@ -133,3 +146,4 @@ socketClient.on('updatedProducts', (_products) => {
   products = [..._products];
   compileProducts();
 });
+//TODO:clear inputs on send

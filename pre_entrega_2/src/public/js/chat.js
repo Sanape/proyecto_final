@@ -2,6 +2,7 @@ const socketClient = io();
 let messages = [];
 let error = '';
 const chat = document.getElementById('chat');
+const clearBtn = document.getElementById('clearBtn');
 
 socketClient.emit('getMessages');
 
@@ -22,6 +23,9 @@ messageForm.onsubmit = async (e) => {
 
   if (validMessage(newMessage)) {
     socketClient.emit('messageSent', newMessage);
+    // Clear the input fields
+    //document.getElementById('email').value = '';
+    document.getElementById('message').value = '';
   }
 };
 
@@ -35,3 +39,8 @@ function compileChat() {
     .join(' ');
   chat.innerHTML = chatTemplate;
 }
+
+clearBtn.addEventListener('click', () => {
+  socketClient.emit('clearChat');
+});
+//TODO:clear inputs on send

@@ -19,6 +19,12 @@ async function messagesHandler(io, socket) {
     const messages = await chatManager.getAll();
     io.sockets.emit('newMessages', messages);
   });
+
+  socket.on('clearChat', async () => {
+    await chatManager.deleteAll();
+    const messages = await chatManager.getAll();
+    io.sockets.emit('newMessages', messages);
+  });
 }
 
 export { getAllProductsHandler, messagesHandler };

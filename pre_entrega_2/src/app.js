@@ -33,9 +33,6 @@ app.use('/', viewsRoute);
 //Global
 app.use(errorHandlerMiddleware);
 
-//Global middlewares
-app.use(errorHandlerMiddleware);
-
 const httpServer = app.listen(8080, () => {
   console.log(`Listening on port 8080`);
   databaseConnection();
