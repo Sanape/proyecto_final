@@ -21,7 +21,7 @@
 
   <body>
     <div
-      class='w-full bg-indigo-500 flex justify-between py-3 px-4 items-center'
+      class='w-full bg-green-500 flex justify-between py-3 px-4 items-center'
     >
       <a
         class='text-white primary-font text-xl'
@@ -47,29 +47,30 @@
         </span>
       </div>
     </div>
-    <div class='w-full bg-white flex items-center' id='sections'>
+    <div class='w-full bg-green-300 flex items-center' id='sections'>
       <a
         href='http://localhost:8080/products'
-        class='secondary-font text-indigo-500 hover:bg-orange-600 px-4 py-2 hover:text-white'
+        class='secondary-font text-indigo-600 hover:bg-green-500 px-4 py-2 hover:text-white'
       >Catalogue</a>
+      {{! TODO:add manufacturer and customers pages }}
       <a
-        href='http://localhost:8080/developers'
-        class='secondary-font text-indigo-500 hover:bg-orange-600 px-4 py-2 hover:text-white'
-      >Developers</a>
+        href='http://localhost:8080/'
+        class='secondary-font text-indigo-600 hover:bg-green-500 px-4 py-2 hover:text-white'
+      >Brands</a>
       <a
-        href='http://localhost:8080/opinions'
-        class='secondary-font text-indigo-500 hover:bg-orange-600 px-4 py-2 hover:text-white'
+        href='http://localhost:8080/'
+        class='secondary-font text-indigo-600 hover:bg-green-500 px-4 py-2 hover:text-white'
       >Opinions</a>
       <a
         href='http://localhost:8080/chat'
-        class='secondary-font text-indigo-500 hover:bg-orange-600 px-4 py-2 hover:text-white'
+        class='secondary-font text-indigo-600 hover:bg-green-500 px-4 py-2 hover:text-white'
       >Live chat</a>
     </div>
 
-    <div id='snackbar'>hola</div>
+    {{! <div id='snackbar'>Best products for your digital experience</div> }}
     {{{body}}}
     <footer
-      class='w-full flex flex-col justify-center items-center bg-indigo-500 p-10 gap-y-10'
+      class='w-full flex flex-col justify-center items-center bg-green-500 p-10 gap-y-10'
     >
       <div>
         <a
@@ -78,7 +79,7 @@
           class='text-white text-3xl primary-font font-bold'
         >
           <h3>
-            GamingStore
+            GS
           </h3>
         </a>
       </div>
