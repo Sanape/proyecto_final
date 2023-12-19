@@ -7,10 +7,21 @@ import {
 
 import isAdmin from '../middlewares/checkRole.middleware.js';
 
+import { generateProduct } from '../mocks/product.mock.js';
+import { customResponse } from '../utils/utils.js';
+
 const router = Router();
 
 router.get('/', (req, res) => {
   res.render('home');
+});
+
+router.get('/mockingproducts', (req, res, next) => {
+  let products = [];
+  for (let i = 0; i < 100; i++) {
+    products.push(generateProduct());
+  }
+  return customResponse(res, 200, products);
 });
 
 router.get('/products', (req, res) => {
