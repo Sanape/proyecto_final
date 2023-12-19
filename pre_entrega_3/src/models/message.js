@@ -1,23 +1,19 @@
-import mongoose from "mongoose";
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
+import { User } from "./user.js";
 
-const messageSchema = new mongoose.Schema(
-  {
-    idUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
-      required: true,
-    },
-    message: {
-      type: String,
-      required: true,
-    },
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const Message = await instanceDatabase.define("message", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
-);
+  message: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+});
 
-const message = new mongoose.model("messages", messageSchema);
 
-export default message;

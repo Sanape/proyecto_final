@@ -1,108 +1,84 @@
-import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-import added from "./added.js";
-import cart from "./cart.js";
-import comment from "./comment.js";
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
 import { deleteImageInCloud } from "../middlewares/uploadImages.middleware.js";
-import CartService from "../services/Cart.service.js";
+import { Rating } from "./rating.js";
+import { Message } from "./message.js";
+import { Auth } from "./auth.js";
+import bcrypt from "bcrypt";
 
-const userSchema = new mongoose.Schema(
-  {
-    first_name: {
-      type: String,
-      required: true,
-    },
-    last_name: {
-      type: String,
-      required: function () {
-        return !this.oauthUser;
-      },
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    age: {
-      type: Number,
-      required: function () {
-        return !this.oauthUser;
-      },
-      max: 99,
-      min: 0,
-    },
-    password: {
-      type: String,
-      required: function () {
-        return !this.oauthUser;
-      },
-    },
-    role: {
-      type: String,
-      enum: ["USER", "ADMIN"],
-      default: "USER",
-    },
-    oauthUser: {
-      type: Boolean,
-      default: false,
-    },
-    urlProfilePhoto: {
-      type: String,
-      default:
-        "https://asset.cloudinary.com/dixntuyk8/86914f2b6bc2dfd2b6a69aa670cd4853",
-    },
-    publicId: {
-      type: String,
-      default: "x1vdmydenrkd3luzvjv6",
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const User = await instanceDatabase.define("user", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  first_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  last_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  email: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+    validate: {
+      isEmail: true,
     },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
-);
+  password: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    set(value) {
+      const salt = bcrypt.genSaltSync(10);
+      this.setDataValue("password", bcrypt.hashSync(value, salt));
+    },
+  },
+  oauthuser: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  role: {
+    type: DataTypes.ENUM("ADMIN", "USER"),
+    defaultValue: "USER",
+  },
+  url_profile_photo: {
+    type: DataTypes.STRING,
+    defaultValue:
+      "https://res.cloudinary.com/dixntuyk8/image/upload/v1693830223/x1vdmydenrkd3luzvjv6.png",
+  },
+  profile_public_id: {
+    type: DataTypes.STRING,
+    defaultValue: "x1vdmydenrkd3luzvjv6",
+  },
+});
 
-userSchema.pre(["findByIdAndDelete", "findOneAndDelete", "deleteOne", "deleteMany"], async function (next) {
-  try {
-    const docToDelete = await this.model.findOne(this.getQuery());
+User.beforeBulkDestroy(async (user, options) => {
+  const foundUser = await User.findByPk(+user.where.id);
 
-    const relationships = [added, cart, comment];
-
-    for (const relation of relationships) {
-      await relation.deleteMany({ idUser: docToDelete._id });
-    }
-
-    if (docToDelete.publicId !== "x1vdmydenrkd3luzvjv6") {
-      await deleteImageInCloud(docToDelete.publicId);
-    }
-
-    next();
-  } catch (error) {
-    throw error;
+  if (foundUser.profile_public_id != "x1vdmydenrkd3luzvjv6") {
+    await deleteImageInCloud(foundUser.profile_public_id);
   }
 });
 
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-  }
-
-  next();
+User.hasOne(Rating,{
+  onDelete: 'CASCADE'
 });
 
-userSchema.post("save", async function () {
-  const foundCart = await CartService.getByFilter({ idUser: this._id });
+Rating.belongsTo(User);
 
-  if (!foundCart) {
-    await CartService.create({ idUser: this._id });
-  }
+User.hasOne(Auth, {
+  onDelete: 'CASCADE'
 });
 
-userSchema.methods.matchPasswords = async function (password) {
-  return await bcrypt.compare(password, this.password);
-};
+Auth.belongsTo(User);
 
-const user = new mongoose.model("users", userSchema);
+User.hasMany(Message, {
+  onDelete: 'CASCADE'
+});
 
-export default user;
+Message.belongsTo(User);

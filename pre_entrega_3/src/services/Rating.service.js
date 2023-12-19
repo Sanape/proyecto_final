@@ -1,92 +1,45 @@
 import BaseService from "./base.service.js";
 import RatingDao from "../dao/DBSystem/Rating.dao.js";
-import mongoose from "mongoose";
+import { Op } from "sequelize";
 
 class RatingService extends BaseService {
   constructor() {
     super(RatingDao);
   }
 
-  async getMostValueProductsRecently() {
+  async create(object) {
     try {
-      const now = new Date();
-      const lastWeek = 1000 * 60 * 60 * 24 * 7;
-      const startDate = new Date(now - lastWeek);
+      let rating = await this.getByFilter({
+        userId: object.userId,
+      });
 
-      const aggregateQuery = await this.dao.aggregate([
-        {
-          $match: {
-            createdAt: {
-              $gte: startDate,
-              $lte: now,
-            },
-          },
-        },
-        {
-          $lookup: {
-            from: "products",
-            localField: "idProduct",
-            foreignField: "_id",
-            as: "product",
-          },
-        },
-        {
-          $limit: 5,
-        },
-        {
-          $group: {
-            _id: "$product",
-            avgRating: { $avg: "$rating" },
-          },
-        },
-        {
-          $sort: { avgRating: -1 },
-        },
-      ]);
-
-      return aggregateQuery;
+      if (rating) {
+        rating = await this.updateById(rating.id, object);
+      } else {
+        rating = await super.create(object);
+      }
     } catch (error) {
       throw error;
     }
   }
 
-  async getRatingProduct(productId) {
+  async getRecentRatings() {
     try {
-      const ratingPromedy = await this.dao.aggregate([
-        { $match: { idProduct: new mongoose.Types.ObjectId(productId) } },
-        {
-          $group: {
-            _id: "$idProduct",
-            avgRating: { $avg: "$rating" },
-          },
-        },
-      ]);
+      const actualDate = new Date();
+      const week = 1000 * 60 * 60 * 24 * 7;
+      const lastWeek = new Date(actualDate.getTime() - week);
 
-      const ratingCount = await this.aggregate([
-        {
-          $match: {
-            idProduct: new mongoose.Types.ObjectId(productId),
+      const result = await this.getAll({
+        where: {
+          createdAt: {
+            [Op.lt]: actualDate,
+            [Op.gt]: lastWeek,
           },
         },
-        {
-          $group: {
-            _id: "$rating",
-            count: { $sum: 1 },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            rating: "$_id",
-            count: 1,
-          },
-        },
-      ]);
+        limit: 10,
+      });
 
-      return {
-        avg: ratingPromedy,
-        count: ratingCount,
-      };
+      return result;
     } catch (error) {
       throw error;
     }

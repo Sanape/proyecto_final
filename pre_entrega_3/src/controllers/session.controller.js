@@ -1,12 +1,13 @@
 import userService from "../services/User.service.js";
-import { generateToken, customResponse } from "../utils.js";
+import { generateToken, customResponse } from "../utils/utils.js";
 
 async function register(req, res, next) {
+  //controller:✓
   try {
     const result = await userService.create(req.body);
 
     const response = {
-      token: await generateToken(result.toJSON()),
+      token: await generateToken({ id: result.id }),
       user: result,
     };
 
@@ -17,6 +18,7 @@ async function register(req, res, next) {
 }
 
 async function login(req, res, next) {
+  //controller:✓
   try {
     const result = await userService.login(req.body);
 
@@ -27,20 +29,25 @@ async function login(req, res, next) {
 }
 
 async function logout(req, res, next) {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    res.render("login");
-  });
+  //controller:✓
+  if (req.isAuthenticated()) {
+    req.logout(function (err) {
+      if (err) {
+        return next(err);
+      }
+    });
+  }
+
+  return customResponse(res, 200, "Logout successful");
 }
 
 async function getActualUser(req, res, next) {
+  //controller:✓
   try {
-    return customResponse(res, 200, req.user);
+    return customResponse(res, 200, req.user); //agregar dto luego en los middleware
   } catch (error) {
     next(error);
   }
 }
 
-export { logout, register, getActualUser, login };
+export { getActualUser, login, logout, register };

@@ -1,34 +1,19 @@
-//imports
-import mongoose from "mongoose";
-import categorized from "./categorized.js";
-//schema
-const categorySchema = new mongoose.Schema(
-  {
-    category: {
-      type: "string",
-      required: true,
-      unique: true,
-    },
+import { Product } from "./product.js";
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
+
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const Category = await instanceDatabase.define("category", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    timestamps: true,
-    versionKey: false,
+  category_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
   }
-);
+});
 
-categorySchema.pre(
-  ["findOneAndDelete", "deleteOne", "deleteMany", "findIdAndDelete"],
-  async function (next) {
-    try {
-      await categorized.deleteMany({ idCategory: this._id });
-
-      next();
-    } catch (error) {
-      throw error;
-    }
-  }
-);
-
-const category = new mongoose.model("categories", categorySchema);
-
-export default category;

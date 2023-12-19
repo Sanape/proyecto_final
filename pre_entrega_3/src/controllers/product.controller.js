@@ -1,18 +1,18 @@
 import productService from "../services/Product.service.js";
-import cartService from "../services/Cart.service.js";
-import { customResponse, CustomError } from "../utils.js";
+import { customResponse } from "../utils/utils.js";
 
 async function getProducts(req, res, next) {
+  //controller:✓
   try {
-    const { query, limit, page, sort, keyword, order } = req.query;
+    const { filter, filterValue, limit, page, sort, order } = req.query;
 
     const result = await productService.getProducts(
-      query,
+      filter,
+      filterValue,
       limit,
       page,
       sort,
-      order,
-      keyword
+      order
     );
 
     return customResponse(res, 200, result);
@@ -22,14 +22,11 @@ async function getProducts(req, res, next) {
 }
 
 async function getProductById(req, res, next) {
+  //controller:✓
   try {
     const { pid } = req.params;
 
     const result = await productService.getById(pid);
-
-    if (!result) {
-      throw new CustomError(404, "Product not found");
-    }
 
     return customResponse(res, 200, result);
   } catch (error) {
@@ -38,47 +35,47 @@ async function getProductById(req, res, next) {
 }
 
 async function addProduct(req, res, next) {
+  //controller:✓ anda:✓
   try {
-    const result = await productService.create(req.body);
+    await productService.create(req.body);
 
-    return customResponse(res, 201, result);
+    return customResponse(res, 201, "Product added successfully");
   } catch (error) {
     next(error);
   }
 }
 
 async function updateProductById(req, res, next) {
+  //controller:✓ anda:✓
   try {
     const { pid } = req.params;
 
-    const result = await productService.updateById(pid, req.body);
+    if (req.file) {
+      req.body = {
+        ...req.body,
+        ...{
+          url_front_page: req.file.url,
+          front_page_public_id: req.file.publicId,
+        },
+      };
+    }
 
-    return customResponse(res, 200, result);
+    await productService.updateById(pid, req.body);
+
+    return customResponse(res, 200, "Product updated successfully");
   } catch (error) {
     next(error);
   }
 }
 
 async function deleteProductById(req, res, next) {
+  //controller:✓
   try {
     const { pid } = req.params;
 
-    const result = await productService.deleteById(pid);
+    await productService.deleteById(pid);
 
-    return customResponse(res, 200, result);
-  } catch (error) {
-    next(error);
-  }
-}
-
-async function getProductsOwnedByUser(req, res, next) {
-  try {
-    const uid = req.user._id;
-    const { limit } = req.query;
-
-    const result = await cartService.getProductsOwnedByUser(uid, limit);
-
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Product deleted successfully");
   } catch (error) {
     next(error);
   }
@@ -86,9 +83,8 @@ async function getProductsOwnedByUser(req, res, next) {
 
 export {
   addProduct,
-  getProducts,
-  getProductById,
-  updateProductById,
   deleteProductById,
-  getProductsOwnedByUser,
+  getProductById,
+  getProducts,
+  updateProductById
 };

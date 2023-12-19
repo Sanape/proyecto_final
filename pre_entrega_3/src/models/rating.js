@@ -1,34 +1,27 @@
-//imports
-import mongoose from "mongoose";
-import aggregatePaginate from "mongoose-aggregate-paginate-v2";
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
+import { User } from "./user.js";
 
-//schema
-const ratingSchema = new mongoose.Schema(
-  {
-    idProduct: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "products",
-      required: true,
-    },
-    idUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
-      required: true,
-    },
-    rating: {
-        type: Number,
-        min: 0,
-        max: 5,
-      },
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const Rating = await instanceDatabase.define("rating", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
-);
+  rating: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    validate: {
+      max: 5,
+      min: 0,
+    },
+    defaultValue: 0,
+  },
+  comment: {
+    type: DataTypes.STRING,
+  },
+});
 
-ratingSchema.plugin(aggregatePaginate);
 
-const rating = new mongoose.model("ratings", ratingSchema);
-
-export default rating;

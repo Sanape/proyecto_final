@@ -1,39 +1,110 @@
-import product from "../../models/product.js";
+import { Product } from "../../models/product.js";
 import BaseDao from "./Base.dao.js";
+import { Category } from "../../models/category.js";
+import { Op } from "sequelize";
+import { errors } from "../../utils/errorDictionary.js";
 
 class ProductDao extends BaseDao {
   constructor() {
-    super(product);
+    super(Product);
   }
 
-  async getProducts(query, limit = 10, page = 1, sort, order, keyword = "") {
-    try {
-      const options = {
-        page: page,
-        limit: limit,
-        customLabels: {
-          docs: "payload",
-        },
-      };
-      if (sort && order) {
-        options.sort = { [sort]: order };
-      }
+  getSearchCriteria(filter, filterValue) {
+    if (filter && !filterValue) {
+      throw new errors.FILTER_NOT_PROVIDED();
+    }
 
-      let searchCriteria = {
-        $or: [
-          { title: { $regex: keyword, $options: "i" } }
-        ],
-      };
-
-      if (query) {
-        const additionalQuery = JSON.parse(query);
-        searchCriteria = {
-          $and: [searchCriteria, additionalQuery],
+    switch (filter) {
+      case "keyword":
+        return {
+          where: {
+            title: { [Op.iLike]: `%${filterValue}%` },
+          },
         };
+
+      case "category":
+        return {
+          include: [
+            {
+              model: Category,
+              where: {
+                id: +filterValue,
+              },
+            },
+          ],
+        };
+
+      case "price":
+        filterValue = JSON.parse(filterValue);
+        return {
+          where: {
+            price: {
+              [Op.and]: {
+                [Op.lte]: +filterValue.majorPrice,
+                [Op.gte]: +filterValue.minorPrice,
+              },
+            },
+          },
+        };
+
+      case "discount":
+        filterValue = JSON.parse(filterValue);
+        return {
+          where: {
+            discount: {
+              [Op.and]: {
+                [Op.lte]: +filterValue.majorDiscount,
+                [Op.gte]: +filterValue.minorDiscount,
+              },
+            },
+          },
+        };
+
+      case "popularity":
+        filterValue = JSON.parse(filterValue);
+        return {
+          where: {
+            updatedAt: {
+              [Op.and]: {
+                [Op.lte]: filterValue.endDate,
+                [Op.gte]: filterValue.startDate,
+              },
+            },
+          },
+        };
+
+      case "recent":
+        filterValue = JSON.parse(filterValue);
+        return {
+          where: {
+            createdAt: {
+              [Op.and]: {
+                [Op.lte]: filterValue.endDate,
+                [Op.gte]: filterValue.startDate,
+              },
+            },
+          },
+        };
+
+      default:
+        return {};
+    }
+  }
+
+  async getProducts(filter, filterValue, limit, page, sort, order) {
+    try {
+      let searchCriteria = {
+        ...this.getSearchCriteria(filter, filterValue),
+        offset: (page - 1) * limit,
+        limit: limit,
+      };
+
+      if (sort && order) {
+        searchCriteria = { ...searchCriteria, order: [[sort, order]] };
       }
 
-      const foundObjects = await this.model.paginate(searchCriteria, options);
-      
+      const foundObjects = await this.model.findAndCountAll(searchCriteria);
+
       return foundObjects;
     } catch (error) {
       throw error;

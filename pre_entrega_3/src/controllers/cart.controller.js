@@ -1,30 +1,24 @@
 import cartService from "../services/Cart.service.js";
-import addedService from "../services/Added.service.js";
-import { customResponse } from "../utils.js";
+import { customResponse } from "../utils/utils.js";
+import { Product } from "../models/product.js";
 
 async function addProductToCart(req, res, next) {
+  //controller:✓
   try {
-    const data = {
-      ...req.body,
-      ...{
-        idUser: req.user._id,
-      },
-    };
+    await cartService.addProductToCart(req.body);
 
-    const result = await addedService.create(data);
-
-    return customResponse(res, 201, result);
+    return customResponse(res, 201, "Producto added to cart");
   } catch (error) {
     next(error);
   }
 }
 
-async function getProductsOfCartById(req, res, next) {
+async function getCartById(req, res, next) {
+  //controller:✓
   try {
-    const { page } = req.query;
     const { cid } = req.params;
 
-    const result = await addedService.getProductsOfCart(cid, 10, page);
+    const result = await cartService.getById(cid);
 
     return customResponse(res, 200, result);
   } catch (error) {
@@ -33,24 +27,33 @@ async function getProductsOfCartById(req, res, next) {
 }
 
 async function deleteProductFromCart(req, res, next) {
+  //controller:✓
   try {
-    const { aid } = req.params;
+    const { cid, pid } = req.params;
 
-    const result = await addedService.deleteById(aid);
+    await cartService.deleteProductFromCart(pid, cid);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Product remove from cart");
   } catch (error) {
     next(error);
   }
 }
 
 async function getCartOfActiveUser(req, res, next) {
+  //controller:✓
   try {
-    const uid = req.user._id;
+    const uid = req.user.id;
 
     const result = await cartService.getByFilter({
-      idUser: uid,
-      bought: false,
+      where: {
+        userId: uid,
+        bought: false,
+      },
+      include: [
+        {
+          model: Product,
+        },
+      ],
     });
 
     return customResponse(res, 200, result);
@@ -59,27 +62,15 @@ async function getCartOfActiveUser(req, res, next) {
   }
 }
 
-async function productAlreadyAddedToCart(req, res, next) {
-  try {
-    const uid = req.user._id;
-    const { cid, pid } = req.params;
-
-    const result = await addedService.productAlreadyAdded(cid, pid, uid);
-
-    return customResponse(res, 200, result);
-  } catch (error) {
-    next(error);
-  }
-}
-
 async function buyCart(req, res, next) {
+  //controller:✓
   try {
-    const uid = req.user._id;
+    const uid = req.user.id;
     const { cid } = req.params;
 
-    const result = await cartService.buyCartById(cid, uid);
+    await cartService.buyCart(cid, uid);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Cart bought successfully");
   } catch (error) {
     next(error);
   }
@@ -87,10 +78,14 @@ async function buyCart(req, res, next) {
 
 async function getHistoryBuysOfCurrentUser(req, res, next) {
   try {
-    const uid = req.user._id;
-    const { limit } = req.query;
+    const uid = req.user.id;
+    const { startDate, endDate } = req.query;
 
-    const result = await cartService.getHistoryOfBuys(uid, limit);
+    const result = await cartService.getHistoryBuysOfCurrentUser(
+      uid,
+      startDate,
+      endDate
+    );
 
     return customResponse(res, 200, result);
   } catch (error) {
@@ -98,26 +93,23 @@ async function getHistoryBuysOfCurrentUser(req, res, next) {
   }
 }
 
-async function productIsBought(req, res, next) {
+async function productAddedToCart(req, res, next) {
   try {
-    const uid = req.user._id;
-    const { pid } = req.params;
+    const { cid, pid } = req.params;
 
-    const result = await cartService.productAlreadyBuy(uid, pid);
+    const result = await cartService.productAddedToCart(pid, cid);
 
     return customResponse(res, 200, result);
   } catch (error) {
     next(error);
   }
 }
-
 export {
   addProductToCart,
   deleteProductFromCart,
   getCartOfActiveUser,
-  getProductsOfCartById,
-  productAlreadyAddedToCart,
   buyCart,
   getHistoryBuysOfCurrentUser,
-  productIsBought,
+  getCartById,
+  productAddedToCart,
 };

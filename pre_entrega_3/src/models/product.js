@@ -1,59 +1,102 @@
-//imports
-import mongoose from "mongoose";
-import mongoosePaginate from "mongoose-paginate-v2";
-import added from "./added.js";
-import categorized from "./categorized.js";
-import productPhoto from "./productPhoto.js";
-import rating from "./rating.js";
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
+import { Developer } from "./developer.js";
+import { Category } from "./category.js";
+import { Cart } from "./cart.js";
+import { deleteImageInCloud } from "../middlewares/uploadImages.middleware.js";
 
-//schema
-const productSchema = new mongoose.Schema(
-  {
-    title: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    description: {
-      type: String,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    status: {
-      type: Boolean,
-      default: false,
-    },
-    releaseDate: {
-      type: Date,
-      required: true,
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const Product = await instanceDatabase.define("product", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+    unique: true,
+  },
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  discount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    validate: {
+      max: 100,
+      min: 0,
     },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
-);
+  trailer_video: {
+    type: DataTypes.STRING,
+  },
+  release_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  url_front_page: {
+    type: DataTypes.STRING,
+    defaultValue:
+      "https://res.cloudinary.com/dixntuyk8/image/upload/v1701903327/image_not_found.webp",
+  },
+  front_page_public_id: {
+    type: DataTypes.STRING,
+    defaultValue: "image_not_found",
+  },
+  popularity: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  CPU: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  RAM: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  memory: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  GPU: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+});
 
-productSchema.plugin(mongoosePaginate);
+Product.beforeBulkDestroy(async (product, options) => {
+  const foundProduct = await Product.findByPk(+product.where.id);
 
-productSchema.pre("findByIdAndDelete", async function (next) {
-  try {
-    const docToDelete = await this.model.findOne(this.getQuery());
-
-    const relationships = [added, categorized, productPhoto, rating];
-
-    for (const relation of relationships) {
-      await relation.deleteMany({ idProduct: docToDelete._id });
-    }
-    
-    next();
-  } catch (error) {
-    throw error;
+  if (foundProduct.front_page_public_id != "image_not_found") {
+    await deleteImageInCloud(foundProduct.front_page_public_id);
   }
 });
 
-const product = new mongoose.model("products", productSchema);
+Product.belongsTo(Developer);
 
-export default product;
+Developer.hasMany(Product);
+
+Product.belongsToMany(Category, {
+  through: "belong",
+});
+
+Category.belongsToMany(Product, {
+  through: "belong",
+});
+
+Product.belongsToMany(Cart, {
+  through: "added",
+});
+
+Cart.belongsToMany(Product, {
+  through: "added",
+});

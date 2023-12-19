@@ -1,9 +1,9 @@
-import message from "../../models/message.js"
+import {Message} from "../../models/message.js"
 import BaseDao from "./Base.dao.js";
 
 class MessageDao extends BaseDao{
     constructor(){
-        super(message)
+        super(Message)
     }
 }
 

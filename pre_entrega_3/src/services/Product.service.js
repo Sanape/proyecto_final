@@ -1,80 +1,120 @@
 import ProductDao from "../dao/DBSystem/Product.dao.js";
 import BaseService from "./base.service.js";
+import { deleteImageInCloud } from "../middlewares/uploadImages.middleware.js";
+import { Category } from "../models/category.js";
+import { Developer } from "../models/developer.js";
+import { errors } from "../utils/errorDictionary.js";
 
 class ProductService extends BaseService {
   constructor() {
     super(ProductDao);
   }
 
-  async getRecentProducts() {
+  async updateById(id, object) {
     try {
-      const now = Date.now();
-      const week = 1000 * 60 * 60 * 24 * 7;
-      const lastWeek = new Date(now - week);
+      const foundObject = await this.getById(id);
 
-      const products = await this.dao.getProducts(
-        {
-          createdAt: { $gte: lastWeek, $lte: now },
-        },
-        5,
-        1,
-        "createdAt",
-        -1
-      );
+      if (object.front_page_public_id) {
+        await deleteImageInCloud(foundObject.front_page_public_id);
+      }
 
-      return products;
+      return super.updateById(id, object);
     } catch (error) {
       throw error;
     }
   }
 
-  async getProducts(query, limit = 10, page = 1, sort, order, keyword = "") {
+  async getById(id) {
+    try {
+      const foundObject = await this.getByFilter({
+        where: {
+          id: id,
+        },
+        include: [
+          {
+            model: Category,
+          },
+          {
+            model: Developer,
+          },
+        ],
+      });
+
+      if (!foundObject) {
+        throw new errors.PRODUCT_NOT_FOUND()
+      }
+
+      return foundObject;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getProducts(
+    filter = "",
+    filterValue = "",
+    limit = 5,
+    page = 1,
+    sort = "",
+    order = ""
+  ) {
     try {
       const products = await this.dao.getProducts(
-        query,
+        filter,
+        filterValue,
         limit,
         page,
         sort,
-        order,
-        keyword
+        order
       );
 
-      products.status = products.payload.length > 0 ? "success" : "error";
-
-      delete products.totalDocs;
-      delete products.limit;
-      delete products.pagingCounter;
-
-      products.prevLink = products.hasPrevPage
-        ? `http://localhost:8080/api/products?page=${products.prevPage}`
-        : null;
-      products.nextLink = products.hasNextPage
-        ? `http://localhost:8080/api/products?page=${products.nextPage}`
-        : null;
+      products.prevLink =
+        page > 1
+          ? `http://localhost:8080/api/products?page=${+page - 1}`
+          : null;
+      products.nextLink =
+        page < products.count / limit
+          ? `http://localhost:8080/api/products?page=${+page + 1}`
+          : null;
 
       products.prevLink =
         sort && order && products.prevLink
           ? products.prevLink + `&sort=${sort}&order=${order}`
           : products.prevLink;
+
       products.nextLink =
         sort && order && products.nextLink
           ? products.nextLink + `&sort=${sort}&order=${order}`
           : products.nextLink;
-      products.prevLink =
-        keyword && products.prevLink
-          ? products.prevLink + `&keyboard=${keyword}`
-          : products.prevLink;
-      products.nextLink =
-        keyword && products.nextLink
-          ? products.nextLink + `&keyboard=${keyword}`
-          : products.nextLink;
+
       products.prevLink =
         limit && products.prevLink
           ? products.prevLink + `&limit=${limit}`
           : products.prevLink;
+
       products.nextLink =
         limit && products.nextLink
           ? products.nextLink + `&limit=${limit}`
+          : products.nextLink;
+
+      products.prevLink =
+        filter && products.prevLink
+          ? products.prevLink + `&filter=${filter}`
+          : products.prevLink;
+
+      products.nextLink =
+        filter && products.nextLink
+          ? products.nextLink + `&filter=${filter}`
+          : products.nextLink;
+
+      products.prevLink =
+        filterValue && products.prevLink
+          ? products.prevLink + `&filterValue=${filterValue}`
+          : products.prevLink;
+
+      products.nextLink =
+        filterValue && products.nextLink
+          ? products.nextLink + `&filterValue=${filterValue}`
           : products.nextLink;
 
       return products;

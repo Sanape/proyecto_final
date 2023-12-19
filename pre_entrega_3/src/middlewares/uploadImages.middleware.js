@@ -31,6 +31,10 @@ async function uploadImageToCloudinary(file) {
 
 async function deleteImageInCloud(publicId) {
   try {
+    if (publicId === "x1vdmydenrkd3luzvjv6" || publicId === "image_not_found") {
+      return null;
+    }
+
     const deletedImage = await cloudinary.v2.uploader.destroy(publicId);
 
     return deletedImage;

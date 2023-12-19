@@ -1,25 +1,24 @@
-import mongoose from "mongoose";
-import { CustomError } from "../utils.js";
-mongoose.set("strictQuery", true);
+import { Sequelize } from 'sequelize';
+import { errors } from '../utils/errorDictionary.js';
 
-const DB_URI =
-  process.env.NODE_ENV === "test"
-    ? process.env.DB_URI_TEST
-    : process.env.DB_URI;
+export class Database {
+  static instanceDatabase;
 
-async function databaseConnection() {
-  await mongoose
-    .connect(process.env.DB_URI)
-    .then((res) => {
-      console.log("Succesfully connected to database");
-    })
-    .catch((err) => {
-      throw new CustomError(
-        500,
-        `Connection to database failed, ERROR: ${err.message}`
-      );
-    });
+  static getInstanceDatabase(database = Sequelize) {
+    if (!this.instanceDatabase) {
+      this.instanceDatabase = new database(process.env.DB_URI);
+    }
+
+    return this.instanceDatabase;
+  }
+
+  static async databaseConnection() {
+    try {
+      await this.getInstanceDatabase().authenticate();
+      //await this.getInstanceDatabase().sync({alter:true});
+      console.log('Succesfully connected to database');
+    } catch (error) {
+      throw new errors.DATABASE_CONNECTION_FAILED(error.message);
+    }
+  }
 }
-
-//exports
-export default databaseConnection;

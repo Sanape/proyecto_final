@@ -1,26 +1,40 @@
-//imports
-import mongoose from "mongoose";
-import added from "./added.js";
-//schema
-const cartSchema = new mongoose.Schema(
-  {
-    idUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
-      required: true,
-    },
-    bought: {
-      type: Boolean,
-      default: false,
+import { DataTypes } from "sequelize";
+import { Database } from "../config/database.connection.js";
+import { User } from "./user.js";
+import { Product } from "./product.js";
+
+const instanceDatabase = Database.getInstanceDatabase();
+
+export const Cart = await instanceDatabase.define("cart", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  bought: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  code: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: false,
+  },
+  purchaser: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isEmail: true,
     },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-  }
-);
+});
+
+Cart.belongsTo(User);
+
+User.hasMany(Cart);
 
 
-const cart = new mongoose.model("carts", cartSchema);
-
-export default cart;

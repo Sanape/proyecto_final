@@ -1,39 +1,28 @@
 import ratingService from "../services/Rating.service.js";
-import { customResponse } from "../utils.js";
+import { customResponse } from "../utils/utils.js";
 
-async function rateProduct(req, res, next) {
+async function rate(req, res, next) {
+  //controller:✓
   try {
-    const rating = { ...req.body, ...{ idUser: req.user._id } };
+    const uid = req.user.id;
 
-    const result = await ratingService.create(rating);
+    req.body = { ...req.body, userId: uid };
 
-    return customResponse(res, 201, result);
-  } catch (error) {
-    next(error);
-  }
-}
+    await ratingService.create(req.body);
 
-async function getRatingOfProduct(req, res, next) {
-  try {
-    const { pid } = req.params;
-
-    const result = await ratingService.getRatingProduct(pid);
-
-    return customResponse(res, 200, result);
+    return customResponse(res, 201, "Rating sent");
   } catch (error) {
     next(error);
   }
 }
 
 async function getRatingOfCurrentUser(req, res, next) {
+  //controller:✓
   try {
-    const uid = req.user._id;
-
-    const { pid } = req.params;
+    const uid = req.user.id;
 
     const result = await ratingService.getByFilter({
-      idUser: uid,
-      idProduct: pid,
+      userId: uid,
     });
 
     return customResponse(res, 200, result);
@@ -42,9 +31,10 @@ async function getRatingOfCurrentUser(req, res, next) {
   }
 }
 
-async function getMostRatedProductsOfLastWeek(req, res, next) {
+async function getRecentRatings(req, res, next) {
+  //controller:✓
   try {
-    const result = await ratingService.getMostValueProductsRecently();
+    const result = await ratingService.getRecentRatings();
 
     return customResponse(res, 200, result);
   } catch (error) {
@@ -52,9 +42,4 @@ async function getMostRatedProductsOfLastWeek(req, res, next) {
   }
 }
 
-export {
-  getRatingOfProduct,
-  rateProduct,
-  getRatingOfCurrentUser,
-  getMostRatedProductsOfLastWeek,
-};
+export { rate, getRecentRatings, getRatingOfCurrentUser };

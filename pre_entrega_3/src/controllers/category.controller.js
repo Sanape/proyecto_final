@@ -1,12 +1,25 @@
-import categorizedService from "../services/Categorized.service.js";
 import categoryService from "../services/Category.service.js";
-import { customResponse } from "../utils.js";
+import { customResponse } from "../utils/utils.js";
+import { Op } from "sequelize";
 
 async function getCategories(req, res, next) {
+  //controller:✓
   try {
     const { keyword } = req.query;
 
-    const result = await categoryService.getAll({}, keyword);
+    let searchCriteria;
+
+    if (keyword) {
+      searchCriteria = {
+        where: {
+          category_name: {
+            [Op.iLike]: `%${keyword}%`,
+          },
+        },
+      };
+    }
+
+    const result = await categoryService.getAll(searchCriteria);
 
     return customResponse(res, 200, result);
   } catch (error) {
@@ -15,60 +28,61 @@ async function getCategories(req, res, next) {
 }
 
 async function addProductToCategory(req, res, next) {
+  //controller:✓
   try {
-    const result = await categorizedService.create(req.body);
+    await categoryService.addProductToCategory(req.body);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Product categorized successfully");
   } catch (error) {
     next(error);
   }
 }
 
 async function deleteProductFromCategory(req, res, next) {
+  //controller:✓
   try {
     const { ctid, pid } = req.params;
 
-    const result = await categorizedService.deleteProductFromCategory(
-      pid,
-      ctid
-    );
+    await categoryService.deleteProductFromCategory(pid, ctid);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Product not longer belongs to category");
   } catch (error) {
     next(error);
   }
 }
 
 async function createCategory(req, res, next) {
+  //controller:✓
   try {
-    const result = await categoryService.create(req.body);
+    await categoryService.create(req.body);
 
-    return customResponse(res, 201, result);
+    return customResponse(res, 201, "Category created successfully");
   } catch (error) {
     next(error);
   }
 }
 
 async function deleteCategory(req, res, next) {
+  //controller:✓
   try {
     const { ctid } = req.params;
 
-    const result = await categoryService.deleteById(ctid);
+    await categoryService.deleteById(ctid);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Categories deleted successfully");
   } catch (error) {
     next(error);
   }
 }
 
-async function getProductsByCategory(req, res, next) {
+async function updateCategory(req, res, next) {
+  //controller:✓
   try {
-    const { page } = req.query;
     const { ctid } = req.params;
 
-    const result = await categorizedService.getProductsByCategory(ctid, page);
+    await categoryService.updateById(ctid, req.body);
 
-    return customResponse(res, 200, result);
+    return customResponse(res, 200, "Category updated successfully");
   } catch (error) {
     next(error);
   }
@@ -80,5 +94,5 @@ export {
   deleteCategory,
   deleteProductFromCategory,
   getCategories,
-  getProductsByCategory,
+  updateCategory,
 };

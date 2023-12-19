@@ -53,9 +53,9 @@ class BaseService {
     }
   }
 
-  async updateByFilter(filter, object) {
+  async updateByFilter(object, filter) {
     try {
-      const updatedObject = await this.dao.updateByFilter(filter, object);
+      const updatedObject = await this.dao.updateByFilter(object, filter);
 
       return updatedObject;
     } catch (error) {
@@ -78,26 +78,6 @@ class BaseService {
       const deletedObject = await this.dao.deleteByFilter(filter);
 
       return deletedObject;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteManyByFilter(filter) {
-    try {
-      const deletedObjects = await this.dao.deleteManyByFilter(filter);
-
-      return deletedObjects;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async aggregate(aggregateQuery) {
-    try {
-      const foundObjects = await this.dao.aggregate(aggregateQuery);
-
-      return foundObjects;
     } catch (error) {
       throw error;
     }
